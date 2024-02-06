@@ -100,7 +100,7 @@ class AutoRenewTrafficPermit(object):
         msg = result["msg"]
         if code == 200:
             if '正在审核' in msg:
-                time.sleep(600)
+                time.sleep(1200)
                 current_state, _, _, _ = self.getRemainingTime(account)
                 result_list.append(f"续签进京证信息成功：\n[{current_state}]")
         else:

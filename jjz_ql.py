@@ -1,5 +1,5 @@
 '''
-cron: 1/* * * * *
+cron: 1 * * * *
 new Env('进京证续期');
 环境变量：export JJZ_data=['姓名|身份证号|车牌号|authorization|source']
 '''

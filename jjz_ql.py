@@ -194,11 +194,7 @@ class AutoRenewTrafficPermit(object):
             elif current_state == "审核通过(待生效)":
                 result_list.append("查询进京证状态信息：\n审核通过(待生效),无需重新申请")
             else:
-                hour = int(datetime.datetime.now().strftime("%H"))
-                if hour > 11:
-                    issuedate = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-                else:
-                    issuedate = datetime.datetime.now().strftime("%Y-%m-%d")
+                issuedate = datetime.datetime.now().strftime("%Y-%m-%d")
                 result_list.append(f"新进京证开始时间为：\n[{issuedate}]")
                 self.renewTrafficPermit(account, hpzl, vid, issuedate)
 

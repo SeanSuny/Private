@@ -185,7 +185,7 @@ class AutoRenewTrafficPermit(object):
                 else:
                     result_list.append(f"查询进京证到期时间：\n进京证将于[{validity_period}]过期，无需续签！")
                     crondate = datetime.datetime.strptime(validity_period, '%Y-%m-%d')
-                    schedule = f'{random.randint(1,59)} {random.randint(7,9)} {crondate.day} {crondate.month} *'
+                    schedule = f'{random.randint(1,59)} {random.randint(7，11)} {crondate.day} {crondate.month} *'
                     schedules = schedule.split(" ")
                     id, command = return_serch
                     self.ql_update(id, command, schedule)

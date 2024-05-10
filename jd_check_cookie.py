@@ -9,7 +9,7 @@ import os
 import re
 
 
-class Sync():
+class Check():
 
     # 青龙Token
     def __init__(self):
@@ -113,4 +113,4 @@ class Sync():
 
 
 if __name__ == '__main__':
-    Sync().match_ck()
+    Check().match_ck()

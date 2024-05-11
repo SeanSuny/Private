@@ -4,6 +4,8 @@ new Env('检测JD_COOKIE');
 """
 
 import requests
+import random
+import time
 import json
 import os
 import re
@@ -34,6 +36,7 @@ class Check():
             'Referer': 'https://home.m.jd.com/myJd/home.action',
         }
         try:
+            time.sleep(random.randint(1，5))
             res = requests.get(url=url, headers=headers, timeout=10, allow_redirects=False)
         except Exception as err:
             print("JD接口错误 请重试或者更换IP")

@@ -36,7 +36,7 @@ class Check():
             'Referer': 'https://home.m.jd.com/myJd/home.action',
         }
         try:
-            time.sleep(random.randint(1，5))
+            time.sleep(random.randint(1,5))
             res = requests.get(url=url, headers=headers, timeout=10, allow_redirects=False)
         except Exception as err:
             print("JD接口错误 请重试或者更换IP")

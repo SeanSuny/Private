@@ -40,14 +40,12 @@ class Check():
             res = requests.get(url=url, headers=headers, timeout=10, allow_redirects=False)
         except Exception as err:
             print("JD接口错误 请重试或者更换IP")
-            return False
         else:
             if res.status_code == 200:
                 try:
                     code = int(json.loads(res.text)['retcode'])
                 except Exception as err:
                     print("JD接口风控, 建议更换IP或增加间隔时间")
-                    return False
                 if code == 0:
                     print(f"{str(pin)}的ck:\033[1;32m [✔] \033[0m")
                     return True
@@ -56,7 +54,6 @@ class Check():
                     return False
             else:
                 print(f"JD接口错误码: {str(res.status_code)}")
-                return False
 
     # 获取所有的变量
     def get_all_ck(self):

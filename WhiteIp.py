@@ -4,10 +4,9 @@
 import time
 import hashlib
 import requests
-from sendNotify import send
+from notify import send
 
 result_list = []
-
 
 def checkip():
     url = 'http://api.xiequ.cn/VAD/OnlyIp.aspx?yyy=123'
@@ -30,10 +29,8 @@ def xiequ():
     url = 'http://op.xiequ.cn/IpWhiteList.aspx?uid=126244&ukey=7C4B6F4BF696311B9AB961F253184A20&act=add&ip=' + checkip()
     response = requests.get(url).text
     if "success" in response:
-        print(f"携趣：白名单更新成功！IP地址：" + checkip())
         result_list.append(f"携趣：白名单更新成功！IP地址：" + checkip())
     else:
-        print(f"携趣：白名单更新失败！")
         result_list.append(f"携趣：白名单更新失败！")
 
 
@@ -43,10 +40,8 @@ def juliang():
     url = 'http://v2.api.juliangip.com/dynamic/replaceWhiteIp?' + data + '&sign=' + sign
     response = requests.get(url).json()
     if response['msg'] == '请求成功':
-        print(f"巨量：白名单更新成功！IP地址：" + checkip())
         result_list.append(f"巨量：白名单更新成功！IP地址：" + checkip())
     else:
-        print(f"巨量：白名单更新失败！")
         result_list.append(f"巨量：白名单更新失败！")
 
 
@@ -54,6 +49,5 @@ if __name__ == '__main__':
     xiequ()
     time.sleep(5)
     juliang()
-    title = 'IP地址池白名单'
     result_str = '\n'.join(result_list)
-    send(title, result_str)
+    send('IP地址池白名单', result_str)

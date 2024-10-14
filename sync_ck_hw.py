@@ -1,7 +1,7 @@
 """
 cron: 15 1,9,17 * * *
 new Env('同步COOKIE到HW');
-环境变量添加 hw_host hw_token
+环境变量添加 hw_host hw_token exclude_pt_pin(排除已禁用和指定pt_pin不同步)
 """
 
 import requests
@@ -18,6 +18,7 @@ class Sync():
         if "hw_host" in os.environ and "hw_token" in os.environ:
             self.hw_host = os.environ['hw_host']
             self.hw_token = os.environ['hw_token']
+            self.exclude_pt_pin = os.environ['exclude_pt_pin'].split(',')
         else:
             print("环境变量未添加或填写不全！！！")
             sys.exit(0)
@@ -50,7 +51,7 @@ class Sync():
                 ptKey_list = []
                 remarks_list = []
                 for i in cklist:
-                    if "pt_pin" in i["value"]:
+                    if "pt_pin" in i["value"] and i["status"] == 0 and not any(exclude in i["value"] for exclude in self.exclude_pt_pin) :
                         ptPin_list.append(re.findall('pt_pin=(.+?);', i["value"])[0])
                         ptKey_list.append(re.findall('pt_key=(.+?);', i["value"])[0])
                         remarks_list.append(i["remarks"])

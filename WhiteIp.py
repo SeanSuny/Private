@@ -48,6 +48,6 @@ def juliang():
 if __name__ == '__main__':
     xiequ()
     time.sleep(5)
-    juliang()
+    # juliang()
     result_str = '\n'.join(result_list)
     send('IP地址池白名单', result_str)

@@ -98,7 +98,7 @@ class AutoRenewTrafficPermit(object):
         code = result["code"]
         msg = result["msg"]
         if code == 200:
-            if '正在审核' in msg:
+            if '正在审核' in msg or '审核中' in msg:
                 time.sleep(600)
                 current_state, validity_period, _, _ = self.getRemainingTime(account)
                 if current_state == "审核通过(生效中)" or current_state == "审核通过(待生效)" :

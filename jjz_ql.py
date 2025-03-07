@@ -17,7 +17,7 @@ import datetime
 
 def sendMsg():
     try:
-        from sendnotify import send
+        from notify import send
         send("进京证续期通知", '\n'.join(result_list))
     except Exception as e:
         if e:

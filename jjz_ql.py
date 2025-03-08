@@ -125,15 +125,16 @@ class AutoRenewTrafficPermit(object):
             print(f'{e}\n请检查你的QL_data参数是否填写正确！')
             exit()
         client_id, client_secret = os.environ.get('QL_data').split(',')
-        url = 'http://127.0.0.1:5700/open/auth/token'
-        headers = {'Content-Type': 'application/json'}
-        params = {"client_id": client_id, "client_secret": client_secret}
-        res = requests.get(url=url, headers=headers, params=params).json()
-        if res["code"] == 200:
-            return res["data"]["token"]
-        else:
-            return False
-
+        url = f"http://127.0.0.1:5700/open/auth/token?client_id={client_id}&client_secret={client_secret}"
+        try:
+            res = requests.get(url).json()
+            if res["code"] == 200:
+                return res["data"]["token"]
+            else:
+                print(f"青龙登录失败：{res['message']}")
+        except Exception as e:
+            print(f"青龙登录失败：{str(e)}")
+    
     def ql_api(self, method, api, body=None):
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.token}"}
         url = 'http://127.0.0.1:5700/' + api

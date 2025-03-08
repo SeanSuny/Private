@@ -1,7 +1,7 @@
 """
 cron: 15 1,9,17 * * *
 new Env('同步COOKIE到HW');
-环境变量添加 hw_host hw_token exclude_pt_pin(排除已禁用和指定pt_pin不同步)
+环境变量添加 hw_host hw_token ql_client_id ql_client_secret exclude_pt_pin(排除已禁用和指定pt_pin不同步)
 """
 
 import requests
@@ -15,9 +15,11 @@ class Sync():
 
     # Hw面板地址、Token
     def __init__(self):
-        if "hw_host" in os.environ and "hw_token" in os.environ:
+        if "hw_host" in os.environ and "hw_token" in os.environ and "ql_client_id" in os.environ and "ql_client_secret" in os.environ:
             self.hw_host = os.environ['hw_host']
             self.hw_token = os.environ['hw_token']
+            self.client_id = os.environ['ql_client_id']
+            self.client_secret = os.environ['ql_client_secret']
             self.exclude_pt_pin = os.environ['exclude_pt_pin'].split(',')
         else:
             print("环境变量未添加或填写不全！！！")
@@ -26,21 +28,20 @@ class Sync():
 
     # 青龙Token
     def get_token(self):
-        path = '/ql/data/config/auth.json'
-        if os.path.isfile(path):
-            with open(path, "r") as file:
-                auth = file.read()
-                file.close()
-            auth = json.loads(auth)
-            token = auth["token"]
-            return token
-        else:
-            print("没有发现auth文件, 你这是青龙吗???")
-            exit()
+        url = f"http://127.0.0.1:5700/open/auth/token?client_id={self.client_id}&client_secret={self.client_secret}"
+        try:
+            response = requests.get(url).json()
+            if (response['code'] == 200):
+                print(f"获取青龙面板的token：{response}")
+                return response["data"]["token"]
+            else:
+                print(f"青龙登录失败：{response['message']}")
+        except Exception as e:
+            print(f"青龙登录失败：{str(e)}")
 
     # 获取所有的变量
     def get_all_ck(self):
-        url = "http://127.0.0.1:5700/api/envs"
+        url = "http://127.0.0.1:5700/open/envs"
         headers = {"Content-Type": "application/json", 'Authorization': f'Bearer {self.ql_token}'}
         try:
             response = requests.get(url, headers=headers).json()

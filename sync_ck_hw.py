@@ -52,7 +52,7 @@ class Sync():
                 ptKey_list = []
                 remarks_list = []
                 for i in cklist:
-                    if "pt_pin" in i["value"] and i["status"] == 0 and not any(exclude in i["value"] for exclude in self.exclude_pt_pin) :
+                    if "pt_pin" in i["value"] and i["status"] == 0 and not any(exclude in i["value"] for exclude in (self.exclude_pt_pin or [])) :
                         ptPin_list.append(re.findall('pt_pin=(.+?);', i["value"])[0])
                         ptKey_list.append(re.findall('pt_key=(.+?);', i["value"])[0])
                         remarks_list.append(i["remarks"])

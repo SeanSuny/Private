@@ -15,17 +15,23 @@ class Check():
 
     # 青龙Token
     def __init__(self):
-        path = '/ql/data/config/auth.json'
-        if not os.path.exists('/ql/data/config/backup'):
-            os.makedirs('/ql/data/config/backup', exist_ok=True)
-        if os.path.isfile(path):
-            with open(path, "r") as file:
-                auth = file.read()
-                file.close()
-            auth = json.loads(auth)
-            self.token = auth["token"]
+        token_files = [
+            '/ql/data/db/keyv.sqlite',
+            '/ql/data/config/auth.json',
+            '/ql/config/auth.json'
+        ]
+        valid_files = [file_path for file_path in token_files if os.path.exists(file_path)]
+        if not valid_files:
+            print("没有发现认证信息文件, 你这是青龙吗???")
+            exit()
+        latest_file = max(valid_files, key=os.path.getmtime)
+        with open(latest_file, 'rb') as f:
+            auth_config = f.read().decode('utf-8', errors='ignore')
+        match = re.search(r'"token":"(.*?)"', auth_config)
+        if match:
+            self.token = match.group(1)
         else:
-            print("没有发现auth文件, 你这是青龙吗???")
+            print(f"在文件 {latest_file} 中未找到 token！！！")
             exit()
 
     # 检测ck
@@ -76,6 +82,8 @@ class Check():
                         ck_list.append(i["value"])
                         id_list.append(i["id"])
                         status_list.append(i["status"])
+                    else:
+                        print(f"获取环境变量失败：没有JD的Cookie")
                 return ck_list, id_list, status_list
             else:
                 print(f"获取环境变量失败：{response['message']}")

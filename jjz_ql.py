@@ -1,8 +1,7 @@
 '''
 cron: 1 * * * *
 new Env('进京证续期');
-环境变量：export JJZ_data = "姓名|身份证号|车牌号|authorization|UA@姓名|身份证号|车牌号|authorization|UA"
-环境变量：export QL_data = "client_id,client_secret"
+环境变量：export JJZ_data = "姓名|身份证号|车牌号|authorization|UA&姓名|身份证号|车牌号|authorization|UA"
 '''
 import os
 import re
@@ -31,15 +30,25 @@ class AutoRenewTrafficPermit(object):
             print(f'你没有填入JJZ_data，咋运行？')
             exit()
         try:
-            accounts = re.split('\n|@', os.environ.get('JJZ_data'))
+            accounts = re.split('\n|&', os.environ.get('JJZ_data'))
         except Exception as e:
             print(f'{e}\n{accounts}\n请检查你的JJZ_data参数是否填写正确！')
             exit()
         result_list.append(f"获取到[{len(accounts)}]个进京证信息")
         self.accounts = []
         for account in accounts:
-            user_name, user_id, vehicle, auth, UA = account.split('|')
-            self.accounts.append({"user_name": user_name, "user_id": user_id, "vehicle": vehicle, "auth": auth, "UA": UA})
+            try:
+                user_name, user_id, vehicle, auth, UA = account.split('|')
+                self.accounts.append({
+                    "user_name": user_name,
+                    "user_id": user_id,
+                    "vehicle": vehicle,
+                    "auth": auth,
+                    "UA": UA
+                })
+            except ValueError:
+                print(f"{account}\n请检查你的JJZ_data参数是否填写正确！")
+                continue
 
     def request(self, url, account, payload=None):
         headers = {
@@ -116,24 +125,25 @@ class AutoRenewTrafficPermit(object):
             result_list.append(f"续签进京证信息失败：\n[{msg}]")
 
     def ql_login(self):
-        if "QL_data" not in os.environ:
-            print(f'你没有填入QL_data，咋运行？')
+        token_files = [
+            '/ql/data/db/keyv.sqlite',
+            '/ql/data/config/auth.json',
+            '/ql/config/auth.json'
+        ]
+        valid_files = [file_path for file_path in token_files if os.path.exists(file_path)]
+        if not valid_files:
+            print("没有发现认证信息文件, 你这是青龙吗???")
             exit()
-        try:
-            client_id, client_secret = os.environ.get('QL_data').split(',')
-        except Exception as e:
-            print(f'{e}\n请检查你的QL_data参数是否填写正确！')
+        latest_file = max(valid_files, key=os.path.getmtime)
+        with open(latest_file, 'rb') as f:
+            auth_config = f.read().decode('utf-8', errors='ignore')
+        match = re.search(r'"token":"(.*?)"', auth_config)
+        if match:
+            return match.group(1)
+        else:
+            print(f"在文件 {latest_file} 中未找到 token！！！")
             exit()
-        client_id, client_secret = os.environ.get('QL_data').split(',')
-        url = f"http://127.0.0.1:5700/open/auth/token?client_id={client_id}&client_secret={client_secret}"
-        try:
-            res = requests.get(url).json()
-            if res["code"] == 200:
-                return res["data"]["token"]
-            else:
-                print(f"青龙登录失败：{res['message']}")
-        except Exception as e:
-            print(f"青龙登录失败：{str(e)}")
+
     
     def ql_api(self, method, api, body=None):
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.token}"}
@@ -156,12 +166,12 @@ class AutoRenewTrafficPermit(object):
         exit()
 
     def get_cron(self):
-        api = 'open/crons'
+        api = 'api/crons'
         res = self.ql_api("GET", api)
         return res['data']['data']
 
     def ql_update(self, id, command, schedule):
-        api = 'open/crons'
+        api = 'api/crons'
         body = {'id': id, 'command': command, 'schedule': schedule}
         self.ql_api("PUT", api, body)
 

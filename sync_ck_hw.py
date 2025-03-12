@@ -1,7 +1,7 @@
 """
 cron: 15 1,9,17 * * *
 new Env('同步COOKIE到HW');
-环境变量添加 hw_host hw_token ql_client_id ql_client_secret exclude_pt_pin(排除已禁用和指定pt_pin不同步)
+环境变量添加 hw_host hw_token exclude_pt_pin(排除已禁用和指定pt_pin不同步)
 """
 
 import requests
@@ -15,33 +15,41 @@ class Sync():
 
     # Hw面板地址、Token
     def __init__(self):
-        if "hw_host" in os.environ and "hw_token" in os.environ and "ql_client_id" in os.environ and "ql_client_secret" in os.environ:
+        if "hw_host" in os.environ and "hw_token" in os.environ:
             self.hw_host = os.environ['hw_host']
             self.hw_token = os.environ['hw_token']
-            self.client_id = os.environ['ql_client_id']
-            self.client_secret = os.environ['ql_client_secret']
             self.exclude_pt_pin = os.environ['exclude_pt_pin'].split(',')
         else:
             print("环境变量未添加或填写不全！！！")
             sys.exit(0)
         self.ql_token = self.get_token()
 
+
     # 青龙Token
     def get_token(self):
-        url = f"http://127.0.0.1:5700/open/auth/token?client_id={self.client_id}&client_secret={self.client_secret}"
-        try:
-            response = requests.get(url).json()
-            if (response['code'] == 200):
-                print(f"获取青龙面板的token：{response}")
-                return response["data"]["token"]
-            else:
-                print(f"青龙登录失败：{response['message']}")
-        except Exception as e:
-            print(f"青龙登录失败：{str(e)}")
+        token_files = [
+            '/ql/data/db/keyv.sqlite',
+            '/ql/data/config/auth.json',
+            '/ql/config/auth.json'
+        ]
+        valid_files = [file_path for file_path in token_files if os.path.exists(file_path)]
+        if not valid_files:
+            print("没有发现认证信息文件, 你这是青龙吗???")
+            exit()
+        latest_file = max(valid_files, key=os.path.getmtime)
+        with open(latest_file, 'rb') as f:
+            auth_config = f.read().decode('utf-8', errors='ignore')
+        match = re.search(r'"token":"(.*?)"', auth_config)
+        if match:
+            return match.group(1)
+        else:
+            print(f"在文件 {latest_file} 中未找到 token！！！")
+            exit()
+
 
     # 获取所有的变量
     def get_all_ck(self):
-        url = "http://127.0.0.1:5700/open/envs"
+        url = "http://127.0.0.1:5700/api/envs"
         headers = {"Content-Type": "application/json", 'Authorization': f'Bearer {self.ql_token}'}
         try:
             response = requests.get(url, headers=headers).json()
@@ -56,6 +64,8 @@ class Sync():
                         ptPin_list.append(re.findall('pt_pin=(.+?);', i["value"])[0])
                         ptKey_list.append(re.findall('pt_key=(.+?);', i["value"])[0])
                         remarks_list.append(i["remarks"])
+                    else:
+                        print(f"获取环境变量失败：没有JD的Cookie")
                 return ptPin_list, ptKey_list, remarks_list
             else:
                 print(f"获取环境变量失败：{response['message']}")

@@ -50,6 +50,6 @@ if __name__ == "__main__":
     print("开始处理>>>【备份】环境变量")
     envs = ql.getEnvs()
     file = open('/ql/data/config/backup/envs_' + datetime.datetime.now().strftime('%Y-%m-%d') + '.json', 'w', encoding='utf-8')
-    文件。write(json.dumps(envs, ensure_ascii=False, indent=4))
-    文件。close()
+    file.write(json.dumps(envs, ensure_ascii=False, indent=4))
+    file.close()
     print("处理完成>>>环境变量备份成功")

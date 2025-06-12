@@ -137,7 +137,7 @@ class AutoRenewTrafficPermit(object):
         latest_file = max(valid_files, key=os.path.getmtime)
         with open(latest_file, 'rb') as f:
             auth_config = f.read().decode('utf-8', errors='ignore')
-        match = re.search(r'"token":"(.*?)"', auth_config)
+        match = re.search(r'"token":"([^"]*)"(?!.*"token":)', auth_config)
         if match:
             return match.group(1)
         else:

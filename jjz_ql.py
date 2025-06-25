@@ -147,7 +147,7 @@ class AutoRenewTrafficPermit(object):
     
     def ql_api(self, method, api, body=None):
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.token}"}
-        url = 'http://127.0.0.1:5700/' + api
+        url = f'http://127.0.0.1:5700/{api}'
         if type(body) == dict:
             res = self.ql_session.request(method, url=url, headers=headers, json=body).json()
         else:

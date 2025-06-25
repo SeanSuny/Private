@@ -124,7 +124,7 @@ class AutoRenewTrafficPermit(object):
         else:
             result_list.append(f"续签进京证信息失败：\n[{msg}]")
 
-    def ql_login(self):
+    def ql_token(self):
         token_files = [
             '/ql/data/db/keyv.sqlite',
             '/ql/data/config/auth.json',
@@ -137,7 +137,7 @@ class AutoRenewTrafficPermit(object):
         latest_file = max(valid_files, key=os.path.getmtime)
         with open(latest_file, 'rb') as f:
             auth_config = f.read().decode('utf-8', errors='ignore')
-        match = re.search(r'"token":"([^"]*)"(?!.*"token":)', auth_config)
+        match = re.search(r'"token":"([^"]+)"', auth_config)
         if match:
             return match.group(1)
         else:
@@ -168,7 +168,11 @@ class AutoRenewTrafficPermit(object):
     def get_cron(self):
         api = 'api/crons'
         res = self.ql_api("GET", api)
-        return res['data']['data']
+        if res['code'] == 401:
+            print("青龙Token失效！")
+            exit()
+        else:
+            return res['data']['data']
 
     def ql_update(self, id, command, schedule):
         api = 'api/crons'
@@ -177,7 +181,7 @@ class AutoRenewTrafficPermit(object):
 
     def main(self):
         self.ql_session = requests.session()
-        self.token = self.ql_login()
+        self.token = self.ql_token()
         self.cronlist = self.get_cron()
         return_serch = self.serch_cron("进京证续期")
         for account in self.accounts:

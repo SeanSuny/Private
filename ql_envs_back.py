@@ -42,8 +42,10 @@ class QL:
                 return rjson['data']
             else:
                 print(f"处理中>>>获取环境变量失败：{rjson['message']}")
+                exit()
         except Exception as e:
             print(f"处理中>>>获取环境变量失败：{str(e)}")
+            exit()
 
 if __name__ == "__main__":
     ql = QL()

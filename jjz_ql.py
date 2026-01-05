@@ -148,20 +148,34 @@ class AutoRenewTrafficPermit(object):
             '/ql/data/config/auth.json',
             '/ql/config/auth.json'
         ]
-        valid_files = [file_path for file_path in token_files if os.path.exists(file_path)]
+        
+        valid_files = [f for f in token_files if os.path.exists(f)]
         if not valid_files:
             print("没有发现认证信息文件, 你这是青龙吗???")
             exit()
         latest_file = max(valid_files, key=os.path.getmtime)
-        with open(latest_file, 'rb') as f:
-            auth_config = f.read().decode('utf-8', errors='ignore')
-        match = re.search(r'"token":"([^"]*)"(?!.*"token":)', auth_config)
-        if match:
-            return match.group(1)
-        else:
-            print(f"在文件 {latest_file} 中未找到 token！！！")
-            exit()
+        if latest_file.endswith('.sqlite'):
+                conn = sqlite3.connect(f'file:{latest_file}?mode=ro', uri=True, timeout=10)
+                cursor = conn.cursor()
+                cursor.execute("SELECT value FROM keyv WHERE key='keyv:authInfo' LIMIT 1")
+                row = cursor.fetchone()
+                conn.close()
 
+                if row and row[0]:
+                    auth_info = json.loads(row[0])
+                    token = auth_info.get("value", {}).get("token")
+                    if token:
+                        return token
+                print(f"❌ 数据库 {latest_file} 中未找到 token！！！")
+        else:
+            with open(latest_file, 'r', encoding='utf-8') as f:
+                auth_info = json.load(f)
+                token = auth_info.get("token")
+                if token:
+                    return token
+                else:
+                    print(f"在文件 {latest_file} 中未找到 token！！！")
+        exit()
     
     def ql_api(self, method, api, body=None):
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.token}"}
